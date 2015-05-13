@@ -1,11 +1,13 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import "helper/globs.js" as Globs
 
 Page
 {
-    id: bearbeiteSeite    
+    id: bearbeiteSeite
     allowedOrientations: Orientation.All
-    backNavigation: true
+    backNavigation: false
+
 
     SilicaListView {
         id: auflistung
@@ -15,24 +17,46 @@ Page
             right: parent.right
             bottom: parent.bottom
         }
-        VerticalScrollDecorator {}
+        VerticalScrollDecorator {flickable: auflistung}
         model: seitenListe
         PullDownMenu {
             MenuItem {
-                text: "über IeligWeb"
+                text: qsTr("About IeligWeb")
                 onClicked: pageStack.push(Qt.resolvedUrl("About.qml"))
             }
             MenuItem {
-                text: "neue Seite"
-                onClicked: pageStack.push(Qt.resolvedUrl("NeueSeite.qml"), { seitenListe: seitenListe})
+                text: qsTr("Settings")
+                onClicked: pageStack.push(Qt.resolvedUrl("Einstellungen.qml"), { seitenListe: seitenListe})
+            }
+            MenuItem {
+                text: qsTr("Add url")
+                onClicked: {
+                    aktPrivatmodus = true
+                    aktDoppelklick = true
+                    pageStack.push(Qt.resolvedUrl("NeueSeite.qml"), { seitenListe: seitenListe})
+                }
             }
         }
 
 
         header: PageHeader {
             id: topPanel
-            title: qsTr("Ielig: Web")
+            title: "Ielig: Web"
         }
+
+        TextArea {
+            //anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            horizontalAlignment: TextEdit.AlignHCenter
+            font.pixelSize: Theme.fontSizeHuge
+            color: Theme.highlightColor
+            font.family: Theme.fontFamily
+            readOnly: true
+            wrapMode: TextEdit.Wrap
+            text: qsTr("Add a web page")
+            visible: seitenListe.count == 0
+        }
+
         delegate: ListItem {
             id: myListItem
             property bool menuOpen: contextMenu != null && contextMenu.parent === myListItem
@@ -43,13 +67,14 @@ Page
             function loesche() {
                 var loeschbar = removalComponent.createObject(myListItem)
                 ListView.remove.connect(loeschbar.deleteAnimation.start)
-                loeschbar.execute(contentItem, "Lösche " + titel, function() { seitenListe.loescheSeite(url); } )
+                loeschbar.execute(contentItem, "Delete " + titel, function() { seitenListe.loescheSeite(url); } )
             }
 
             function schreibeSeite() {
                 leseSeiteneinstellungen(url);
                 pageStack.push(Qt.resolvedUrl("NeueSeite.qml"), { seitenListe: seitenListe, editSeite: true, alterTitel: titel, seitenTitel: titel, seitenUrl: url});
             }
+
 
             BackgroundItem {
                 id: contentItem
@@ -58,15 +83,12 @@ Page
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
                     color: contentItem.down || menuOpen ? Theme.highlightColor : Theme.primaryColor
+                    font.pixelSize: Globs.gibThemeFontgroesse(aktFontstufe)
                 }
                 onClicked: {
-                    clearCookies();
-                    clearCache();
+                    Globs.nimmAktTitel(titel);
                     leseSeiteneinstellungen(url);
-                    //console.debug("ZEIGE Seite: Aufruf von:" + titel + " " + url + " UserAgent: " + aktUseragent);
-                    //if (aktZoom == 0) {
-                    //    aktZoom = 1
-                    //}
+                    pageStack.clear()
                     pageStack.push(Qt.resolvedUrl("ZeigeSeite.qml"), {seitenUrl: url})
                 }
                 onPressAndHold: {
@@ -95,13 +117,13 @@ Page
                 ContextMenu {
                     id: menu
                     MenuItem {
-                        text: qsTr("bearbeiten")
+                        text: qsTr("Edit")
                         onClicked: {
                             menu.parent.schreibeSeite();
                         }
                     }
                     MenuItem {
-                        text: qsTr("löschen")
+                        text: qsTr("Delete")
                         onClicked: {
                             menu.parent.loesche();
                         }

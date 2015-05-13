@@ -32,15 +32,16 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "pages"
 import "pages/helper/db.js" as DB
+import "pages/helper/globs.js" as Globs
 
 ApplicationWindow
-{   id: root
+{   id: haupt
 
     property string aktDBVersion: "0.0.1"
     property string altVersion1: ""
     property string aktUrl
-    property string aktTitel
-    //property real aktZoom: 1
+    property string aktTitel: "Ielig:Web"
+    property real aktZoom: 1
     property real aktHeight: 960
     property real aktWidth: 540
     property bool aktJavascript: false
@@ -50,6 +51,8 @@ ApplicationWindow
     property bool aktOfflinecache: false
     property bool aktLokalerspeicher: false
     property bool aktPrivatmodus: true
+    property bool aktDoppelklick: true
+    property int aktseitenFontstufe: 1
     property int defaultFontSize: 26
     property int defaultFixedFontSize: 24
     property int minimumFontSize: 20
@@ -59,9 +62,10 @@ ApplicationWindow
     property real neueHoehe: 960
     property real neueWeite: 540
 
+
     //Einstellungen
-    property string ieligwebUrl: "ieligweb"
-    property int aktFontstufe: 3
+    property string ieligwebUrl: "IeligWeb!Intern"
+    property int aktFontstufe: 1
     property string aktUseragent: "Jolla/Sailfish"
     property string userAgentJollaIndex: "Jolla/Sailfish"
     property string userAgentOperaMini9Index: "Opera Mobile"
@@ -70,14 +74,14 @@ ApplicationWindow
     property string userAgentOperaMini9: "Opera/9.80 (J2ME/MIDP; Opera Mini/9 (Compatible; MSIE:9.0; iPhone; BlackBerry9700; AppleWebKit/24.746; U; en) Presto/2.5.25 Version/10.54"
     property string userAgentMozillaDesktop25: "Mozilla/5.0 (X11; U; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0"
 
-    //property QtObject seitenStapel: pageStack
-    //property QtObject firstPage
-
-    signal clearCookies()
-    signal clearCache()
 
     initialPage: Component { BearbeiteSeite { } }
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
+
+    function programmEinstellungen() {
+        aktFontstufe = gibEinstellungReal(ieligwebUrl,"Fontstufe",1)
+    }
+
 
     ListModel {
         id: seitenListe
@@ -134,15 +138,13 @@ ApplicationWindow
    function leseSeiteneinstellungen (url) {
        aktJavascript = gibEinstellungBool(url,"Javascript")
        aktCookies = gibEinstellungBool(url,"Cookies")
-       aktPlugins = gibEinstellungBool(url,"Plugins")
-       //aktJava: java
-       //aktOfflinecache: offlinecache
-       //aktLokalerspeicher: lokalerspeicher
        aktPrivatmodus = gibEinstellungBool(url,"Privatmodus")
        //aktZoom = gibEinstellungReal(url,"Zoom",aktZoom)
-       neueHoehe = gibEinstellungReal(url,"ZoomHoehe",neueHoehe)
-       neueWeite = gibEinstellungReal(url,"ZoomWeite",neueWeite)
+       //neueHoehe = gibEinstellungReal(url,"ZoomHoehe",neueHoehe)
+       //neueWeite = gibEinstellungReal(url,"ZoomWeite",neueWeite)
        aktUseragent = gibEinstellung(url,"Useragent")
+       aktseitenFontstufe = gibEinstellungReal(url,"Font",aktseitenFontstufe)
+       aktDoppelklick = gibEinstellungBool(url,"Doppelklick")
    }
 
    function editEinstellung(url, parameter, wert) {
@@ -165,8 +167,10 @@ ApplicationWindow
        return luserAgent;
    }
 
+
     Component.onCompleted: {
         DB.initialize(aktDBVersion);
+        programmEinstellungen();
         DB.gibSeite();
 
     }

@@ -1,9 +1,8 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtWebKit 3.0
-//import QtWebKit.experimental 1.0
+import "helper/globs.js" as Globs
 
-//rschroll.github.io/beru/2013/08/21/qtwebview.experimental.html
 Page {
     id: page
     allowedOrientations: Orientation.All
@@ -12,10 +11,11 @@ Page {
     showNavigationIndicator: false
 
     property string seitenUrl
+    property bool urlPause: aktDoppelklick
 
     function gibTextJavascriptAnAus() {
-        if (aktJavascript) {return qsTr("Javascript aus")}
-            else {return qsTr("Javascript ein")};
+        if (aktJavascript) {return qsTr("Javascript off")}
+            else {return qsTr("Javascript on")};
     }
 
     SilicaWebView {
@@ -27,7 +27,35 @@ Page {
         url: seitenUrl
         objectName: "SWebView"
 
+        onNavigationRequested: {
+            switch (request.navigationType)
+            {
+            case WebView.LinkClickedNavigation: {
+                if (urlPause) {
+                    urlPause = false
+                    request.action = WebView.IgnoreRequest
+                } else {
+                    urlPause = true
+                    request.action = WebView.AcceptRequest
+                }
+                return
+            }
+
+            case WebView.FormSubmittedNavigation:
+            case WebView.BackForwardNavigation:
+            case WebView.ReloadNavigation:
+            case WebView.FormResubmittedNavigation:
+            case WebView.OtherNavigation:
+            {
+                    request.action = WebView.AcceptRequest
+                    return
+                }
+            }
+            request.action = WebView.AcceptRequest
+        }
+
         //die Einstellmöglichkeiten sind sehr schlecht in WebView
+
         experimental {
             preferences {
                 javascriptEnabled: aktJavascript;
@@ -36,56 +64,43 @@ Page {
                 offlineWebApplicationCacheEnabled: aktOfflinecache;
                 localStorageEnabled: aktLokalerspeicher;
                 //javaEnabled: aktJava;
-                //xssAuditingEnabled: false;
                 privateBrowsingEnabled: aktPrivatmodus;
-                //dnsPrefetchEnabled: false;
+                dnsPrefetchEnabled: false;
 
                 minimumFontSize: minimumFontSize;
                 defaultFontSize: defaultFontSize;
                 defaultFixedFontSize: defaultFixedFontSize;
-
-                // von WebCat:Scale the websites like g+ and others a little bit for better reading
                 fullScreenEnabled: true
                 developerExtrasEnabled: true
                 //contentsScale: aktZoom;
+                //setDefautZoom: 125;
            }
 
-            //itemSelector: PopOver {}
             transparentBackground: false
             userAgent: gibUserAgent()
+            //deviceWidth: page.width / aktZoom
+            //deviceHeight: page.height / aktZoom
+
         }
-        smooth: true;
-        //preferredWidth: root.width
-        //preferredHeight: root.height
-        //pressGrabTime: 800;
-        //setZoomFactor: aktZoom;
-        //settings.setZoomFactor: aktZoom
-        //implicitHeight: root.height * aktZoom
-        //implicitWidth: root.width *aktZoom
-        //width: root.width * aktZoom
-        //height: root.height *aktZoom
-        //scale: aktZoom
-        //x: 0
-        //y: 0
-        //on_webPageChanged: {
-        //    scaled =true
-        //    webView.returnToBounds()
-        //}
-        //transformOrigin: root.TopLeft
+        smooth: false;
+        onScaleChanged: {
+            urlPause = aktDoppelklick
+        }
 
         PullDownMenu {
             MenuItem {
-                text: "diese Seite speichern"
+                text: qsTr("Save url")
                 onClicked: {
-                    pageStack.push(Qt.resolvedUrl("neueSeite.qml"), { seitenListe: seitenListe, editSeite: true, alterTitel: "", seitenTitel: "", seitenUrl: webView.url});
-                    editEinstellung(Qt.resolvedUrl("neueSeite.qml"),"Privatmodus",seitenPrivatmodus.toString());
-                    editEinstellung(Qt.resolvedUrl("neueSeite.qml"),"Javascript",seitenJavascript.toString());
-                    editEinstellung(Qt.resolvedUrl("neueSeite.qml"),"Cookies",seitenCookies.toString());
-                    editEinstellung(Qt.resolvedUrl("neueSeite.qml"),"Plugins",seitenPlugins.toString());
-                    //editEinstellung(Qt.resolvedUrl("neueSeite.qml"),"Java",seitenJavascript.toString());
-                    //editEinstellung(Qt.resolvedUrl("neueSeite.qml"),"Offlinecache",seitenJavascript.toString());
-                    //editEinstellung(Qt.resolvedUrl("neueSeite.qml"),"LokalerSpeicher",seitenJavascript.toString());
-                    editEinstellung(Qt.resolvedUrl("neueSeite.qml"),"Zoom",seitenZoom.toString());
+                    pageStack.push(Qt.resolvedUrl("NeueSeite.qml"), { seitenListe: seitenListe, editSeite: true, alterTitel: "", seitenTitel: "", seitenUrl: webView.url});
+                    editEinstellung(seitenUrl,"Privatmodus",seitenPrivatmodus.toString());
+                    editEinstellung(seitenUrl,"Javascript",seitenJavascript.toString());
+                    editEinstellung(seitenUrl,"Cookies",seitenCookies.toString());
+                    editEinstellung(seitenUrl,"Plugins",seitenPlugins.toString());
+                    //editEinstellung(seitenUrl,"Java",seitenJavascript.toString());
+                    //editEinstellung(seitenUrl,"Zoom",seitenZoom.toString());;
+                    editEinstellung(seitenUrl,"Useragent",aktUseragent);
+                    editEinstellung(seitenUrl,"Font",aktseitenFontstufe);
+                    editEinstellung(seitenUrl,"Doppelklick",aktDoppelklick);
                 }
             }
             MenuItem {
@@ -108,13 +123,13 @@ Page {
         id: kzurueck;
         anchors {
             left: parent.left
-            bottom: parent.bottom
+            top: parent.top
         }
         width: 65
         height: 65
         opacity: 0.3
         color: "lightgrey"
-        //visible: page.backNavigation;
+        visible: webView.canGoBack;
         MouseArea {
           id: mausGebietzurueck
           anchors.fill: parent
@@ -128,13 +143,13 @@ Page {
         id: kvor;
         anchors {
             right: parent.right
-            bottom: parent.bottom
+            top: parent.top
         }
         width: 65
         height: 65
         opacity: 0.3
         color: "lightgrey"
-        //visible: webView.forwardNavigation;
+        visible: webView.canGoForward;
         MouseArea {
           id: mausGebietvor
           anchors.fill: parent
@@ -146,22 +161,21 @@ Page {
     Rectangle {
         id: kaktualisiere;
         anchors {
-            top: parent.top
+            bottom: parent.bottom
             right: parent.right
         }
         width: 65
         height: 65
         opacity: 0.3
         color: "lightgrey"
-        //visible: webView.forwardNavigation;
         MouseArea {
           id: mausAktualisiere
           anchors.fill: parent
           onClicked: {
               if (webView.loading) {
-                webView.stop
+                webView.stop()
               } else {
-                webView.reload
+                webView.reload()
               }
           }
         }
@@ -171,22 +185,23 @@ Page {
     Rectangle {
         id: kauswahl;
         anchors {
-            top: parent.top
+            bottom: parent.bottom
             left: parent.left
         }
         width: 65
         height: 65
         opacity: 0.3
         color: "lightgrey"
-        //visible: webView.forwardNavigation;
         MouseArea {
           id: mausZeigeAuswahl
           anchors.fill: parent
           onClicked: {
-              //aktZoom: 1;
-              pageStack.pop();
+              Globs.nimmAktTitel("")
+              pageStack.clear();
+              pageStack.push(Qt.resolvedUrl("BearbeiteSeite.qml"), {seitenUrl: seitenUrl});
           }
         }
 
     }
+
 }

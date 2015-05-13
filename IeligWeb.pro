@@ -28,7 +28,10 @@ OTHER_FILES += qml/IeligWeb.qml \
     qml/pages/About.qml \
     qml/pages/NeueSeite.qml \
     qml/pages/ZeigeSeite.qml \
-    qml/pages/Einstellungen.qml
+    qml/pages/Einstellungen.qml \
+    qml/pages/helper/globs.js \
+    translations/IeligWeb.ts \
+    translations/IeligWeb-de.ts
 
 # to disable building translations every time, comment out the
 # following CONFIG line

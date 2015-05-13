@@ -4,18 +4,16 @@ import Sailfish.Silica 1.0
 Dialog {
     id: einstellungsSeite
     allowedOrientations: Orientation.All
-    backNavigation: true
-
 
     onAccepted: speicherEinstellungen()
 
     function speicherEinstellungen() {
-        aktFontstufe = fontStufe.value;
-        editEinstellung(ieligwebUrl,"Fontstufe",aktFonstufe);
+        aktFontstufe = fontStufe.currentIndex;
+        editEinstellung(ieligwebUrl,"Fontstufe",aktFontstufe);
     }
 
-    Keys.onEnterPressed: ok();
-    Keys.onReturnPressed: ok();
+    Keys.onEnterPressed: speicherEinstellungen();
+    Keys.onReturnPressed: speicherEinstellungen();
 
     Flickable {
         width:parent.width
@@ -24,8 +22,8 @@ Dialog {
 
         DialogHeader {
             id: kopf
-            acceptText: editSeite ? qsTr("speichern") : qsTr("speichern")
-            cancelText: qsTr("abbrechen")
+            acceptText: qsTr("Save")
+            cancelText: qsTr("Cancel")
         }
 
         Column {
@@ -34,23 +32,18 @@ Dialog {
             anchors.topMargin: 25
             width: parent.width
             spacing: 25
-            function ok() {
-                if (seitenTitel.focus == true && editSeite == false) seitenUrl.focus = true
-                else if (seitenUrl.focus == true) { seitenUrl.text = fixUrl(seitenUrl.text);}
-                else if (seitenTitel.focus == true && editSeite == true) { accepted(); } //pageStack.pop(); }
-            }
-
 
             ComboBox {
                 id: fontStufe
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: parent.width - 20
-                label: qsTr("Schriftgröße")
+                label: qsTr("Font size")
+                currentIndex: aktFontstufe
 
                 menu: ContextMenu {
-                    MenuItem { text: qsTr("groß") }
+                    MenuItem { text: qsTr("small") }
                     MenuItem { text: qsTr("normal") }
-                    MenuItem { text: qsTr("klein") }
+                    MenuItem { text: qsTr("big") }
                 }
             }
         }

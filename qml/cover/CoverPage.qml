@@ -30,17 +30,18 @@
 
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import "../pages/helper/globs.js" as Globs
 
 CoverBackground {
-    Label {
-        id: label
-        anchors.centerIn: parent
-        text: qsTr("Ielig:Web")
-    }
+    //Label {
+    //    id: label
+    //    anchors.centerIn: parent
+    //    text: aktTitel
+    //}
 
     CoverPlaceholder {
-        text: "Ielig:Web"
-        icon.source: "IeligWeb.png"
+        text: Globs.gibAktTitel()
+        //icon.source: "harbour-ieligweb.png"
     }
 
     CoverActionList {

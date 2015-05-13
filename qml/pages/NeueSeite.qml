@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import "helper/globs.js" as Globs
 
 Dialog {
     id: neueSeiteSeite
@@ -35,22 +36,22 @@ Dialog {
         editEinstellung(gefixteUrl,"Javascript",seitenJavascript.checked.toString());
         aktCookies = seitenCookies.checked;
         editEinstellung(gefixteUrl,"Cookies",seitenCookies.checked.toString());
-        aktPlugins = seitenPlugins.checked;
-        editEinstellung(gefixteUrl,"Plugins",seitenPlugins.checked.toString());
         //aktZoom = parseFloat(seitenZoom.text);
-        editEinstellung(gefixteUrl,"Zoom",seitenZoom.text.toString());
-        //console.debug("Speicher " + seitenZoom.text + " " + root.height)
-        neueZoomHoehe = root.height * parseFloat(seitenZoom.text)
-        neueZoomWeite = root.width * parseFloat(seitenZoom.text)
-        editEinstellung(gefixteUrl,"ZoomHöhe",neueZoomHoehe.toString());
-        editEinstellung(gefixteUrl,"ZoomWeite",neueZoomWeite.toString());
+        //editEinstellung(gefixteUrl,"Zoom",seitenZoom.text.toString());
+        //neueZoomHoehe = haupt.height * parseFloat(seitenZoom.text)
+        //neueZoomWeite = haupt.width * parseFloat(seitenZoom.text)
+        //editEinstellung(gefixteUrl,"ZoomHöhe",neueZoomHoehe.toString());
+        //editEinstellung(gefixteUrl,"ZoomWeite",neueZoomWeite.toString());
         aktUseragent = userAgent.value;
-        //console.debug("Speicher:" + gefixteUrl + " UserAgent: " + aktUseragent);
         editEinstellung(gefixteUrl,"Useragent",aktUseragent);
+        aktseitenFontstufe = seitenfontStufe.currentIndex;
+        editEinstellung(gefixteUrl,"Font",seitenfontStufe.currentIndex);
+        aktDoppelklick = seitenDoppelklick.checked;
+        editEinstellung(gefixteUrl,"Doppelklick",seitenDoppelklick.checked.toString());
     }
 
-    Keys.onEnterPressed: ok();
-    Keys.onReturnPressed: ok();
+    Keys.onEnterPressed: einfuegenNeueSeite();
+    Keys.onReturnPressed: einfuegenNeueSeite();
 
     Flickable {
         width:parent.width
@@ -59,8 +60,8 @@ Dialog {
 
         DialogHeader {
             id: kopf
-            acceptText: editSeite ? qsTr("speichern") : qsTr("speichern")
-            cancelText: qsTr("abbrechen")
+            acceptText: editSeite ? qsTr("Save") : qsTr("Save")
+            cancelText: qsTr("Cancel")
         }
 
         Column {
@@ -79,54 +80,54 @@ Dialog {
                 id: seitenTitel
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: parent.width - 20
-                placeholderText: "Name der Seite"
+                placeholderText: qsTr("Name")
                 focus: true
+                font.pixelSize: Globs.gibThemeFontgroesse(aktFontstufe)
             }
             TextField {
                 id: seitenUrl
                 width: parent.width - 20
                 anchors.horizontalCenter: parent.horizontalCenter
-                placeholderText: "URL der Seite"
+                placeholderText: qsTr("URL")
                 inputMethodHints: Qt.ImhUrlCharactersOnly
-                //visible: editSeite ? false : true
+                font.pixelSize: Globs.gibThemeFontgroesse(aktFontstufe)
             }
-            TextField {
-                id: seitenZoom
-                label: "Zoom"
-                //text: root.aktZoom.toString()
-                text: "1"
-                inputMethodHints: Qt.ImhFormattedNumbersOnly
-                onFocusChanged: if (focus == true) selectAll();
-                //placeholderText: "1.5        "
-                visible: false;
+            //TextField {
+            //    id: seitenZoom
+            //    label: qsTr("Zoom")
+            //    text: "1"
+            //    inputMethodHints: Qt.ImhFormattedNumbersOnly
+            //    onFocusChanged: if (focus == true) selectAll();
+            //    placeholderText: "1.5        "
+            //    font.pixelSize: Globs.gibThemeFontgroesse(aktFontstufe)
 
-            }
+            //}
             TextSwitch {
                 id: seitenPrivatmodus
-                text: "privates Browsen"
+                text: qsTr("Private mode")
                 checked: aktPrivatmodus
             }
             TextSwitch {
                 id: seitenJavascript
-                text: "Javascript aktivieren"
+                text: qsTr("Activate javascript")
                 checked: aktJavascript
             }
             TextSwitch {
                 id: seitenCookies
-                text: "Cookies erlauben"
+                text: qsTr("Allow cookies")
                 checked: aktCookies
             }
             TextSwitch {
-                id: seitenPlugins
-                text: "Plugins erlauben"
-                checked: aktPlugins
+                id: seitenDoppelklick
+                text: qsTr("LinkStop (ignore first click)")
+                checked: aktDoppelklick
             }
 
             ComboBox {
                 id: userAgent
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: parent.width - 20
-                label: qsTr("ausgeben als")
+                label: qsTr("User agent")
 
                 menu: ContextMenu {
                     MenuItem { text: userAgentJollaIndex }
@@ -135,6 +136,19 @@ Dialog {
                 }
             }
 
+            ComboBox {
+                id: seitenfontStufe
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: parent.width - 20
+                label: qsTr("Font size")
+                currentIndex: aktseitenFontstufe
+
+                menu: ContextMenu {
+                    MenuItem { text: qsTr("big") }
+                    MenuItem { text: qsTr("normal") }
+                    MenuItem { text: qsTr("small") }
+                }
+            }
         }
     }
 
